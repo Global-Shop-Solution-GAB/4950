@@ -1,0 +1,569 @@
+Program.Sub.ScreenSU.Start
+Gui.Form..Create
+Gui.Form..Caption("Cycle Count - CUSTOM")
+Gui.Form..Size(15360,10920)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form..MaxButton(False)
+Gui.Form..MinButton(False)
+Gui.Form.txtCount.Create(TextBox,"",True,435,300,0,13935,705,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtCount.Event(LostFocus,txtCount_LostFocus)
+Gui.Form.txtCount.NumericOnly(1)
+Gui.Form.txtCount.Anchor(9)
+Gui.Form.txtCount.TabStop(True)
+Gui.Form.txtCount.TabIndex(4)
+Gui.Form.lblCount.Create(Label,"Enter Quantity:",True,1230,255,0,12630,780,True,0,"Arial",8,-2147483633,0)
+Gui.Form.lblCount.Anchor(9)
+Gui.Form.GGC_Parts.Create(GsGridControl)
+Gui.Form.GGC_Parts.Size(13860,8445)
+Gui.Form.GGC_Parts.Position(540,1080)
+Gui.Form.GGC_Parts.Event(RowClick,GGC_Parts_RowClick)
+Gui.Form.GGC_Parts.Event(RowCellClick,GGC_Parts_RowCellClick)
+Gui.Form.GGC_Parts.Anchor(15)
+Gui.Form.GGC_Parts.TabStop(True)
+Gui.Form.GGC_Parts.TabIndex(7)
+Gui.Form.cmdSave.Create(Button)
+Gui.Form.cmdSave.Size(855,375)
+Gui.Form.cmdSave.Position(600,9690)
+Gui.Form.cmdSave.Caption("Save")
+Gui.Form.cmdSave.Event(Click,cmdSave_Click)
+Gui.Form.cmdSave.Anchor(6)
+Gui.Form.cmdSave.TabStop(True)
+Gui.Form.cmdSave.TabIndex(8)
+Gui.Form.cmdPrint.Create(Button)
+Gui.Form.cmdPrint.Size(1755,375)
+Gui.Form.cmdPrint.Position(1635,9690)
+Gui.Form.cmdPrint.Caption("Print Count Sheet")
+Gui.Form.cmdPrint.Event(Click,cmdPrint_Click)
+Gui.Form.cmdPrint.Enabled(False)
+Gui.Form.cmdPrint.Anchor(6)
+Gui.Form.cmdPrint.TabStop(True)
+Gui.Form.cmdPrint.TabIndex(9)
+Gui.Form.lbl2.Create(Label,"Count ID: ",True,840,255,0,420,300,True,0,"Arial",8,-2147483633,0)
+Gui.Form.txtCountID.Create(TextBox,"",True,735,300,0,1305,210,True,0,"Arial",8,-2147483643,1)
+Gui.Form.txtCountID.TabStop(True)
+Gui.Form.txtCountID.TabIndex(2)
+Gui.Form.txtCountID.Event(LostFocus,txtCountID_LostFocus)
+Gui.Form.cmdBrwID.Create(Button)
+Gui.Form.cmdBrwID.Size(375,375)
+Gui.Form.cmdBrwID.Position(2190,165)
+Gui.Form.cmdBrwID.Caption("^")
+Gui.Form.cmdBrwID.Event(Click,cmdBrwID_Click)
+Gui.Form.cmdBrwID.TabStop(True)
+Gui.Form.cmdBrwID.TabIndex(1)
+Gui.Form.cmdUpdate.Create(Button)
+Gui.Form.cmdUpdate.Size(1650,375)
+Gui.Form.cmdUpdate.Position(12645,9690)
+Gui.Form.cmdUpdate.Caption("Update Inventory")
+Gui.Form.cmdUpdate.Event(Click,cmdUpdate_Click)
+Gui.Form.cmdUpdate.Enabled(False)
+Gui.Form.cmdUpdate.Anchor(10)
+Gui.Form.cmdUpdate.TabStop(True)
+Gui.Form.cmdUpdate.TabIndex(11)
+Gui.Form.txtDate.Create(TextBox,"",True,1215,300,0,4080,210,False,0,"Arial",8,-2147483643,1)
+Gui.Form.txtDate.TabStop(True)
+Gui.Form.txtDate.TabIndex(3)
+Gui.Form.lbl1.Create(Label,"Count Date",True,1035,255,0,2970,300,True,0,"Arial",8,-2147483633,0)
+Gui.Form.cmdAll.Create(Button)
+Gui.Form.cmdAll.Size(1020,300)
+Gui.Form.cmdAll.Position(570,735)
+Gui.Form.cmdAll.Caption("Select All")
+Gui.Form.cmdAll.Event(Click,cmdAll_Click)
+Gui.Form.cmdAll.TabStop(True)
+Gui.Form.cmdAll.TabIndex(5)
+Gui.Form.cmdClear.Create(Button)
+Gui.Form.cmdClear.Size(1020,300)
+Gui.Form.cmdClear.Position(1770,735)
+Gui.Form.cmdClear.Caption("Clear All")
+Gui.Form.cmdClear.Event(Click,cmdClear_Click)
+Gui.Form.cmdClear.TabStop(True)
+Gui.Form.cmdClear.TabIndex(6)
+Gui.Form.cmdDelete.Create(Button)
+Gui.Form.cmdDelete.Enabled(False)
+Gui.Form.cmdDelete.Size(1860,375)
+Gui.Form.cmdDelete.Position(3525,9690)
+Gui.Form.cmdDelete.Caption("Delete Uncounted File")
+Gui.Form.cmdDelete.Event(Click,cmdDelete_Click)
+Gui.Form.cmdDelete.Anchor(6)
+Gui.Form.cmdDelete.TabStop(True)
+Gui.Form.cmdDelete.TabIndex(10)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+v.Local.sSql.Declare
+v.Local.sSql2.Declare
+v.Local.dDate.Declare
+v.Local.sFile.Declare
+v.Local.sRet.Declare
+v.Local.bRet.Declare
+
+
+'making sure the custom directory exists for this project
+F.Intrinsic.Control.CallSub(directory_check)
+
+'set our work day range
+F.Intrinsic.Date.DateSubtractWorkdays(V.Ambient.Date,90,127,V.Local.dDate)
+
+'open connection
+f.ODBC.Connection!coredb.opencompanyconnection
+
+'build query for initial count selection
+v.Local.sSql.Set("select IT.PART, IX.DISPLAY_PART AS LONG_PART, IT.LOCATION AS LOC, IT.LOT, IT.BIN, IT.HEAT, IT.SERIAL_NUMBER, IT.QUANTITY as ON_HAND, CAST(0.00 AS FLOAT) as COUNTED, IT.UNIT_COST, CAST(1 AS INTEGER) AS RECORDNUM from v_ITEM_MASTER IT LEFT JOIN INV_LXR IX ON IT.PART = IX.GSS_PART")
+f.Intrinsic.String.Build("SELECT PART, LOCATION AS LOC, PRODUCT_LINE, UM_INVENTORY, DESCRIPTION AS DESCR, date_last_audit as DATE_CYCLE FROM V_INVENTORY_ALL where DATE_last_audit < '{0}'",V.local.dDate.PervasiveDate,v.Local.sSql2)
+
+F.Data.DataTable.CreateFromSQL("ITEM","COREDB",V.Local.sSql,True)
+f.Data.DataTable.CreateFromSQL("MASTER","COREDB",V.Local.sSql2,True)
+
+F.Data.Linq.Join("INNERJOIN","DATATABLE","MASTER*!*M","DATATABLE","ITEM*!*I","M.PART=I.PART","M.PART*!*I.LONG_PART*!*M.LOC*!*I.LOT*!*I.BIN*!*I.HEAT*!*I.SERIAL_NUMBER*!*I.ON_HAND*!*I.COUNTED*!*I.UNIT_COST*!*I.RECORDNUM*!*M.PRODUCT_LINE*!*M.UM_INVENTORY*!*M.DESCR*!*M.DATE_CYCLE","","","I.BIN ASC","PARTS",True)
+'build the datatable, view, and set gridview properties
+'f.Data.DataTable.CreateFromSQL("PARTS","coredb",v.Local.sSql,true)
+F.Data.DataTable.SetSeries("PARTS","RECORDNUM",1,1)
+f.Data.DataTable.AddColumn("PARTS","SELECTED","BOOLEAN",False)
+
+f.Data.DataView.Create("PARTS","partsView")
+gui.Form.GGC_Parts.AddGridviewFromDataView("GV_PARTS","PARTS","PARTSVIEW")
+gui.Form.GGC_Parts.MainView("GV_PARTS")
+GUI.Form.GGC_Parts.SetColumnProperty("GV_PARTS","SELECTED","AllowEdit",True)
+Gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","SELECTED","ReadOnly",False)
+'HIDE
+gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","DATE_CYCLE","Visible",False)
+gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","UM_INVENTORY","Visible",False)
+gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","PRODUCT_LINE","Visible",False)
+gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","UNIT_COST","Visible",False)
+gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","RECORDNUM","Visible",False)
+
+gui.Form.GGC_Parts.SetGridviewProperty("GV_PARTS","EnterKeyNavigation","Vertical")
+
+'load the user settings for the grid
+f.Intrinsic.String.Build("{0}\CUSTOM\4950\{1}4950_COUNT.TXT",V.Caller.GlobalDir,V.Caller.User,V.Local.sFile)
+f.Intrinsic.File.Exists(v.Local.sFile,v.Local.bRet)
+f.Intrinsic.Control.If(v.Local.bRet,=,True)
+	f.Intrinsic.File.File2String(v.Local.sFile,v.Local.sRet)
+	gui.Form.GGC_Parts.Deserialize(v.Local.sRet)
+f.Intrinsic.Control.EndIf
+gui.Form.GGC_Parts.visible(True)
+'setting the record count so the user knows how many records are there
+gui.Form.txtCount.Text(v.DataTable.parts.RowCount)
+
+f.ODBC.Connection!coredb.Close
+
+gui.Form..Show
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Form_UnLoad.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+V.Local.sFile.Declare
+v.Local.sReturn.Declare
+v.Local.iLen.Declare
+
+f.Intrinsic.String.Len(v.Screen.Form!txtCountID.text,v.Local.iLen)
+
+'saving the grid preferences based on where they are in the program
+f.Intrinsic.Control.If(v.Local.iLen,>,0)
+	f.Intrinsic.String.Build("{0}\CUSTOM\4950\{1}4950_SETUP.TXT",v.Caller.GlobalDir,v.Caller.User,v.Local.sFile)
+	gui.Form.GGC_Parts.Serialize("GV_PARTS",v.Local.sReturn)
+	f.Intrinsic.File.String2File(v.Local.sFile,v.Local.sReturn)
+f.Intrinsic.Control.Else
+	f.Intrinsic.String.Build("{0}\CUSTOM\4950\{1}4950_COUNT.TXT",v.Caller.GlobalDir,v.Caller.User,v.Local.sFile)
+	gui.Form.GGC_Parts.Serialize("GV_PARTS",v.Local.sReturn)
+	f.Intrinsic.File.String2File(v.Local.sFile,v.Local.sReturn)
+f.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.Form_UnLoad.End
+
+Program.Sub.catching.Start
+v.Local.sError.declare(string)
+F.Intrinsic.String.Build("Project: {0}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}","GCG_4950_Cycle_Count.g2u",V.Ambient.NewLine,v.Args.sub,V.Args.errorno,V.args.errordesc,V.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+F.Intrinsic.Control.CallSub(FORM_UNLOAD)
+Program.Sub.catching.End
+
+Program.Sub.cmdBrwID_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+V.Local.sSql.Declare
+v.Local.sFile.Declare
+v.Local.sRet.Declare
+v.Local.bRet.Declare
+
+
+'open connection
+f.ODBC.Connection!coredb.opencompanyconnection
+
+'create a browser to select our count records
+f.Intrinsic.UI.Browser("Open Count Sheets","coredb","SELECT DATE, TIME, RUN_ID FROM CYCLE_COUNT_XREF","DATE*!*TIME*!*RUN_ID","300*!*400*!*300",V.Local.sRet)
+
+'after selection
+F.Intrinsic.Control.If(V.Local.sRet,<>,v.Ambient.Cancel)
+	f.Intrinsic.String.Split(v.Local.sRet,"*!*",v.Local.sRet)
+	gui.Form.txtCountID.Text(v.Local.sRet(2))
+	gui.Form.txtDate.Text(v.Local.sRet(0))
+	f.Intrinsic.Control.CallSub(load_count, "COUNTID",V.Local.sRet(2))
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!COREDB.Close
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdBrwID_Click.End
+
+Program.Sub.txtCount_LostFocus.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+v.Local.iCount.Declare
+v.Local.sSql.Declare
+'v.Local.dDate.Declare
+V.Local.sFilter.Declare
+
+v.Local.iCount.Set(v.Screen.Form!txtCount.text)
+F.Intrinsic.Control.If(V.Screen.Form!txtCountID.TEXT,=,"")
+	f.Intrinsic.String.Build("RECORDNUM <= {0}",v.Local.iCount.Long,v.Local.sFilter)
+	F.Data.DataView.SetFilter("PARTS","partsview",v.Local.sFilter)
+	GUI.Form.GGC_Parts.MainView("GV_PARTS")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.txtCount_LostFocus.End
+
+Program.Sub.cmdSave_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+V.Local.iBIRunID.Declare
+
+'open a connection
+f.ODBC.Connection!coredb.opencompanyconnection
+
+'if runID is populated in the screen txtID = true
+
+'get the runid store as global
+f.Global.BI.GetRunID(v.Local.iBIRunID)
+gui.Form.txtCountID.Text(v.Local.iBIRunID)
+
+f.Data.DataView.SetFilter("PARTS","PARTSVIEW","SELECTED = True")
+'filter datatable by selected, save to new table, add RUNID as column
+f.Data.DataView.ToDataTable("PARTS","partsview","saveparts")
+f.Data.DataTable.SetValue("saveparts",-1,"RECORDNUM",V.Local.iBIRunID)
+
+
+'create the id in cycle_count_xref
+'date as date, time as time, userid, birunid
+f.Data.DataTable.Create("COUNTID",True)
+f.Data.DataTable.AddColumn("COUNTID","DATEID","DATE")
+F.Data.DataTable.AddColumn("COUNTID","TIMEID","DATE")
+F.Data.DataTable.AddColumn("COUNTID","USERID","STRING",V.Caller.User,8)
+F.Data.DataTable.AddColumn("COUNTID","RUN_ID","LONG",V.Local.iBIRunID)
+
+F.Data.DataTable.AddRow("COUNTID","DATEID",V.Ambient.Date.PervasiveDate,"TIMEID",V.Ambient.Time,"USERID",V.Caller.User,"RUN_ID",V.Local.iBIRunID)
+
+'Save the count key
+f.Data.DataTable.SaveToDB("COUNTID","coredb","cycle_count_xref","DATE*!*TIME",128,"DATEID@!@DATE*!*TIMEID@!@TIME*!*USERID@!@XUSER*!*RUN_ID@!@RUN_ID")
+
+'Save the count records
+f.Data.DataTable.SaveToDB("saveparts","coredb","cycle_count_bin","RUNID*!*PART*!*LOC*!*BIN*!*LOT*!*HEAT*!*SERIAL",128,"RECORDNUM@!@RUNID*!*PART@!@PART*!*LOC@!@LOC*!*DESCR@!@DESCR*!*LOT@!@LOT*!*HEAT@!@HEAT*!*SERIAL_NUMBER@!@SERIAL*!*BIN@!@BIN*!*UM_INVENTORY@!@UM*!*PRODUCT_LINE@!@PL*!*UNIT_COST@!@ORIG_COST*!*UNIT_COST@!@NEW_COST*!*ON_HAND@!@ORIG_QTY*!*COUNTED@!@ADJUST*!*SELECTED@!@LOT_BIN")
+
+F.Intrinsic.UI.Msgbox("Count Sheet Successfully Saved")
+
+gui.Form.cmdPrint.enabled(True)
+gui.Form.cmdDelete.Enabled(True)
+
+f.ODBC.Connection!coredb.Close
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdSave_Click.End
+
+Program.Sub.cmdPrint_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+v.Local.iBIRunID.Declare
+v.Local.iReturn.Declare
+v.Local.sSql.Declare
+
+
+'get run id from screen
+v.Local.iBIRunID.Set(v.Screen.Form!txtCountID.text)
+
+'open a connection
+f.ODBC.Connection!coredb.opencompanyconnection
+'Get the data related to the count and save it to the Z table for reporting
+F.Intrinsic.String.Build("SELECT RUNID, PART, LOC, DESCR, LOT, HEAT, SERIAL, BIN, UM, PL, ABC, ORIG_QTY, UNBALANCED FROM CYCLE_COUNT_BIN WHERE RUNID = '{0}'",V.Local.iBIRunID,V.Local.sSql)
+f.Data.DataTable.CreateFromSQL("COUNTLIST","COREDB",v.Local.sSql)
+
+f.Data.DataTable.SaveToDB("COUNTLIST","COREDB","Z_IV_CC_WKSHT_BIN","BIRUNID*!*PART",128,"RUNID@!@BIRUNID*!*PART@!@PART*!*LOC@!@LOC*!*DESCR@!@DESCRIPTION*!*LOT@!@LOT*!*HEAT@!@HEAT*!*SERIAL@!@SERIAL*!*BIN@!@BIN*!*UM@!@UM*!*PL@!@PROD_LINE*!*ABC@!@ABC*!*ORIG_QTY@!@ORIG_QTY*!*UNBALANCED@!@UNBALANCED")
+
+F.ODBC.Connection!COREDB.Close
+
+'setup BI report variables
+f.Global.BI.StartLogging(v.Local.iBIRunID,2567,-1,"",v.Local.iReturn)
+f.Global.BI.StopLogging(v.Local.iReturn)
+'call to print
+f.Global.BI.RunReportPreProcessor(v.Local.iBIRunID,v.Local.iReturn,"Location*!*FromDate*!*ToDate"," *!* *!* ","",-1,False,"",-1,"",-1,"","",v.Local.iReturn)
+
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+
+Program.Sub.cmdPrint_Click.End
+
+Program.Sub.cmdUpdate_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+v.Local.iRet.Declare
+'update the counted quantity and counted date to the cycle count table
+
+
+f.ODBC.Connection!coredb.opencompanyconnection
+
+f.Data.DataTable.SaveToDB("PARTS","coredb","cycle_count_bin","RUNID*!*PART*!*LOC*!*BIN*!*LOT*!*HEAT*!*SERIAL",256,"RUNID@!@RUNID*!*PART@!@PART*!*LOC@!@LOC*!*DESCR@!@DESCR*!*LOT@!@LOT*!*HEAT@!@HEAT*!*SERIAL@!@SERIAL*!*BIN@!@BIN*!*UM@!@UM*!*PL@!@PL*!*ABC@!@ABC*!*ON_HAND@!@ORIG_QTY*!*COUNTED@!@ADJUST")
+
+f.ODBC.Connection!coredb.Close
+
+f.Global.General.LaunchMenuTask(366,V.Local.iRet)
+
+f.Data.DataTable.Close("PARTS")
+
+f.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdUpdate_Click.End
+
+Program.Sub.GGC_Parts_RowCellClick.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+V.Local.iRow.Declare
+v.Local.sFilter.Declare
+v.Local.sPart.Declare
+v.Local.sLoc.Declare
+
+v.Local.iRow.Set(v.Args.RowIndex)
+
+f.Data.DataTable.SetValue("PARTS",v.Args.rowindex,"SELECTED",V.DataTable.parts(V.Args.ROWINDEX).SELECTED!FIELDVALNOT)
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.GGC_Parts_RowCellClick.End
+
+Program.Sub.GGC_Parts_RowClick.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+V.Local.iRow.Declare
+v.Local.sFilter.Declare
+v.Local.sPart.Declare
+v.Local.sLoc.Declare
+
+v.Local.iRow.Set(v.Args.RowIndex)
+
+f.Data.DataView.SetValue("PARTS","partsview",v.Args.rowindex,"SELECTED",V.DataTable.parts(V.Args.ROWINDEX).SELECTED!FIELDVALNOT)
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.GGC_Parts_RowClick.End
+
+Program.Sub.directory_check.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+v.Local.sDir.Declare
+V.Local.bDir.Declare
+
+f.Intrinsic.String.Build("{0}\CUSTOM\4950\",V.Caller.GlobalDir,V.Local.sDir)
+F.Intrinsic.File.DirExists(V.Local.sDir,V.Local.bDir)
+F.Intrinsic.Control.If(V.Local.bDir,=,False)
+	f.Intrinsic.File.CreateDir(v.Local.sDir)
+f.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.directory_check.End
+
+Program.Sub.cmdClear_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+F.Data.DataView.SetValue("PARTS","PARTSVIEW",-1,"SELECTED",False)
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdClear_Click.End
+
+Program.Sub.cmdAll_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+
+F.Data.DataView.SetValue("PARTS","PARTSVIEW",-1,"SELECTED",True)
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdAll_Click.End
+
+Program.Sub.cmdDelete_Click.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+v.Local.sSql.Declare
+
+f.ODBC.Connection!coredb.opencompanyconnection
+
+f.Intrinsic.String.Build("delete from cycle_count_bin where RUNID = '{0}'",v.Screen.Form!txtCountID.text,v.Local.sSql)
+f.ODBC.Connection!coredb.execute(v.Local.sSql)
+f.Intrinsic.String.Build("delete from cycle_count_xref where RUN_ID = '{0}'",V.Screen.Form!txtCountID.TEXT,V.Local.sSql)
+f.ODBC.Connection!coredb.execute(v.Local.sSql)
+
+F.Data.DataTable.Close("PARTS")
+f.Data.DataTable.Close("ITEM")
+f.Data.DataTable.Close("MASTER")
+f.Intrinsic.Control.If(v.DataTable.SAVEPARTS.Exists)
+	f.Data.DataTable.Close("saveparts")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.COUNTID.Exists)
+	f.Data.DataTable.Close("COUNTID")
+F.Intrinsic.Control.EndIf
+GUI.Form.txtCountID.Text("")
+
+f.ODBC.Connection!coredb.Close
+gui.Form.GGC_Parts.visible(False)
+F.Intrinsic.Control.CallSub(Main)
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdDelete_Click.End
+
+Program.Sub.txtCountID_LostFocus.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+v.Local.sCountID.Declare
+
+f.ODBC.Connection!coredb.opencompanyconnection
+
+f.Intrinsic.Control.CallSub(load_count,"COUNTID",V.Screen.Form!txtCountID.TEXT)
+
+F.ODBC.Connection!coredb.Close
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.txtCountID_LostFocus.End
+
+Program.Sub.load_count.Start
+f.Intrinsic.Control.Try
+v.Local.sError.Declare
+V.Local.sSql.Declare
+v.Local.sFile.Declare
+v.Local.sRet.Declare
+v.Local.bRet.Declare
+
+F.Intrinsic.Control.If(V.Args.COUNTID,>,"")
+	v.Local.sRet.Set(v.Args.COUNTID)
+
+
+	'this data table will always be there but needs to be closed and re-created.
+	f.Data.DataTable.Close("PARTS")
+	f.Intrinsic.String.Build("SELECT CC.RUNID, CC.PART, IX.DISPLAY_PART AS LONG_PART, CC.LOC, CC.DESCR, CC.LOT, CC.BIN, CC.HEAT, CC.SERIAL, CC.UM, CC.PL, CC.ABC, CC.ORIG_QTY AS ON_HAND, CAST(ADJUST AS DOUBLE) AS COUNTED FROM CYCLE_COUNT_BIN CC LEFT JOIN INV_LXR IX ON CC.PART = IX.GSS_PART WHERE CC.RUNID = '{0}' ORDER BY BIN ASC",v.Local.sRet,V.Local.sSql)
+	f.Data.DataTable.CreateFromSQL("PARTS","coredb",v.Local.sSql,true)
+	
+	'f.Data.DataTable.AddColumn("PARTS","COUNTED","FLOAT",0,20)
+	
+	gui.Form.GGC_Parts.visible(false)
+	
+	f.Data.DataView.Create("PARTS","partsView")
+	gui.Form.GGC_Parts.AddGridviewFromDataView("GV_PARTS","PARTS","PARTSVIEW")
+	gui.Form.GGC_Parts.MainView("GV_PARTS")
+	gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","COUNTED","AllowEdit",True)
+	gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","COUNTED","ReadOnly",False)
+	'hide
+	gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","RUNID","Visible",False)
+	gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","PL","Visible",False)
+	gui.Form.GGC_Parts.SetColumnProperty("GV_PARTS","ABC","Visible",False)
+	
+	gui.Form.GGC_Parts.SetGridviewProperty("GV_PARTS","EnterKeyNavigation","Vertical")
+	
+	gui.Form.GGC_Parts.AddStyleFormatCondition("GV_PARTS","COUNTED","NOBALANCE","EXPRESSION","COUNTED > 0 AND COUNTED <> ON_HAND")
+	gui.Form.GGC_Parts.SetStyleFormatConditionProperty("GV_PARTS","COUNTED","NOBALANCE","BACKCOLOR","LEMONCHIFFON")
+	GUI.Form.GGC_Parts.SetStyleFormatConditionProperty("GV_PARTS","COUNTED","NOBALANCE","APPLYTOROW",True)
+	
+	gui.Form.GGC_Parts.AddStyleFormatCondition("GV_PARTS","COUNTED","BALANCE","EXPRESSION","COUNTED = ON_HAND")
+	gui.Form.GGC_Parts.SetStyleFormatConditionProperty("GV_PARTS","COUNTED","BALANCE","BACKCOLOR","LIGHTGREEN")
+	GUI.Form.GGC_Parts.SetStyleFormatConditionProperty("GV_PARTS","COUNTED","BALANCE","APPLYTOROW",True)
+	'load user settings for this grid if they have previously been saved
+	f.Intrinsic.String.Build("{0}\CUSTOM\4950\{1}4950_COUNTED.TXT",V.Caller.GlobalDir,V.Caller.User,V.Local.sFile)
+	f.Intrinsic.File.Exists(v.Local.sFile,v.Local.bRet)
+	f.Intrinsic.Control.If(v.Local.bRet,=,True)
+		f.Intrinsic.File.File2String(v.Local.sFile,v.Local.sRet)
+		gui.Form.GGC_Parts.Deserialize(v.Local.sRet)
+	f.Intrinsic.Control.EndIf
+	
+	gui.Form.txtCount.Text(v.DataTable.parts.RowCount)
+	gui.Form.GGC_Parts.visible(true)
+	
+	
+	'since we are loading a count that needs to be posted, we're going to disable the save function, the user should only see Print and Update buttons
+	gui.Form.cmdSave.Enabled(False)
+	gui.Form.cmdUpdate.Enabled(True)
+	gui.Form.cmdPrint.Enabled(True)
+	gui.Form.cmdDelete.Enabled(True)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+f.Intrinsic.Control.catch
+f.Intrinsic.Control.CallSub(catching,"sub",v.Ambient.CurrentSubroutine,"errorno",v.Ambient.ErrorNumber,"errordesc",v.Ambient.ErrorDescription)
+f.Intrinsic.Control.EndTry
+Program.Sub.load_count.End
